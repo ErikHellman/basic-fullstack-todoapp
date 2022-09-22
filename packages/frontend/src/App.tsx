@@ -11,20 +11,24 @@ const fetchTodos = async (): Promise<TodoItem[]> => {
 };
 
 function App() {
-  const [todoText, setTodoText] = useState<string>('')
+  const [todoText, setTodoText] = useState<string>("");
   const [todos, setTodos] = useState<TodoItem[]>([]);
   const [error, setError] = useState<string | undefined>();
 
   const createTodo = (todoText: string): void => {
     const todoItem: TodoItem = {
       text: todoText,
-      timeStamp: new Date()
-    }
+      timeStamp: new Date(),
+    };
     axios
       .post<TodoItem[]>("/todos", todoItem)
       .then((response) => setTodos(response.data))
+      .catch((_) => {
+        setTodos([]);
+        setError("Something went wrong when fetching my todos...");
+      });
   };
-  
+
   useEffect(() => {
     fetchTodos()
       .then(setTodos)
@@ -54,7 +58,11 @@ function App() {
     <div className="App">
       <header className="App-header">{output()}</header>
       <section>
-        <input type='text' value={todoText} onChange={(e) => setTodoText(e.target.value)} />
+        <input
+          type="text"
+          value={todoText}
+          onChange={(e) => setTodoText(e.target.value)}
+        />
         <button onClick={(e) => createTodo(todoText)}>Create todo</button>
       </section>
     </div>
