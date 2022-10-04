@@ -1,10 +1,21 @@
 import React, { useEffect, useState } from "react";
-import TodoItem from "@my-todo-app/shared";
 import "./App.css";
 import axios from "axios";
+import { LoginInput } from "./LoginInput";
+import { TodoItem } from "@my-todo-app/shared";
 
 axios.defaults.baseURL =
   process.env.REACT_APP_TODO_API || "http://localhost:3001";
+axios.interceptors.request.use((config) => {
+  if (!config?.headers) {
+    config.headers = {};
+  }
+  const jwt = localStorage.getItem("jwt");
+  if (jwt) {
+    config.headers["authorization"] = `Bearer ${jwt}`;
+  }
+  return config;
+});
 
 const fetchTodos = async (): Promise<TodoItem[]> => {
   const response = await axios.get<TodoItem[]>("/todos");
@@ -52,6 +63,7 @@ function App() {
   const [todoText, setTodoText] = useState<string>("");
   const [todos, setTodos] = useState<TodoItem[]>([]);
   const [error, setError] = useState<string | undefined>();
+  const [isLoggedIn, setLoggedIn] = useState<boolean>(false);
 
   const createTodo = async (todoText: string): Promise<void> => {
     const todoItem: TodoItem = {
@@ -67,7 +79,7 @@ function App() {
       setTodos([]);
       setError("Something went wrong when fetching my todos...");
     } finally {
-      setTodoText("")
+      setTodoText("");
     }
   };
 
@@ -80,11 +92,32 @@ function App() {
       });
   }, []);
 
+  const performLogin = async (
+    username: string,
+    password: string
+  ): Promise<void> => {
+    const loginResponse = await axios.post("/login", {
+      username: username,
+      password: password,
+    });
+    if (loginResponse && loginResponse.status === 200) {
+      localStorage.setItem("jwt", loginResponse.data);
+      setLoggedIn(true);
+      setError("");
+      const response = await axios.get<TodoItem[]>("/todos");
+      setTodos(response.data);
+    }
+  };
+
   return (
     <div className="App">
       <header className="App-header">My ToDo Lists</header>
       <section className="App-content">
-        <TodoList todos={todos} error={error} />
+        {isLoggedIn ? (
+          <TodoList todos={todos} error={error} />
+        ) : (
+          <LoginInput onLogin={performLogin} />
+        )}
       </section>
       <footer className="App-footer">
         <TodoInput

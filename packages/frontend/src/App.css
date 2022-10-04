@@ -22,8 +22,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: start;
-  min-height: 100%
+  justify-content: center;
+  min-height: 100%;
 }
 
 .App-footer {
@@ -35,6 +35,15 @@
 }
 
 .App-footer button {
+  margin-left: 4px;
+  padding: 4px;
+}
+
+.loginForm {
+  margin-left: 4px;
+}
+
+.loginForm div {
   margin-left: 4px;
   padding: 4px;
 }
